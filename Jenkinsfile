@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "nginx:latest"
-        DOCKER_REGISTRY = "jenkins.example.localhost"
+        DOCKER_REGISTRY = "jenkins.localhost"
     }
 
     stages {
