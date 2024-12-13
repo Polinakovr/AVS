@@ -13,7 +13,7 @@ pipeline {
                     // Указываем ветку для проверки
                     checkout([$class: 'GitSCM', 
                               branches: [[name: '*/main']], // Убедитесь, что ветка указана правильно
-                              userRemoteConfigs: [[url: 'https://github.com/Byleon2361/TestRepositorya']]
+                              userRemoteConfigs: [[url: 'https://github.com/Polinakovr/Programms']]
                     ])
                 }
             }
