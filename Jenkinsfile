@@ -1,41 +1,42 @@
 pipeline {
     agent any
 
-    stages {
-        stage('Checkout') {
-            steps {
-                // Клонируем репозиторий
-                git 'https://github.com/Polinakovr/AVS/new/main'
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    // Сборка Docker-образа
-                    def app = docker.build("jenkinsimage:${env.BUILD_ID}")
-                }
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                script {
-                    // Остановка и удаление старого контейнера
-                    sh 'docker stop jenkins || true'
-                    sh 'docker rm jenkins || true'
-
-                    // Запуск нового контейнера
-                    sh 'docker run -d --name jenkins -p 8080:8080 jenkinsimage:${env.BUILD_ID}'
-                }
-            }
-        }
+    environment {
+        DOCKER_IMAGE = "nginx:latest"
+        DOCKER_REGISTRY = "jenkins.example.localhost"
     }
 
-    post {
-        always {
-            // Очистка после сборки
-            cleanWs()
+    stages {
+        stage('Клонирование репозитория') {
+            steps {
+                script {
+                    // Указываем ветку для проверки
+                    checkout([$class: 'GitSCM', 
+                              branches: [[name: '*/main']], // Убедитесь, что ветка указана правильно
+                              userRemoteConfigs: [[url: 'https://github.com/Byleon2361/TestRepositorya']]
+                    ])
+                }
+            }
+        }
+
+        stage('Сборка Docker-образа') {
+            steps {
+                sh 'docker build -t $DOCKER_IMAGE .'
+            }
+        }
+
+        stage('Публикация в реестр') {
+            steps {
+                sh 'docker tag $DOCKER_IMAGE $DOCKER_REGISTRY/$DOCKER_IMAGE'
+                sh 'docker push $DOCKER_REGISTRY/$DOCKER_IMAGE'
+            }
+        }
+
+        stage('Развертывание контейнера') {
+            steps {
+                sh 'docker stop my-app  true && docker rm my-app  true'
+                sh 'docker run -d --name my-app -p 80:80 $DOCKER_REGISTRY/$DOCKER_IMAGE'
+            }
         }
     }
 }
